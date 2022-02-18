@@ -14,13 +14,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-// Route::group(['middleware' => 'auth'], function () {
-
-//     Route::prefix('auth')->group(function () {
-        
-//     });
+// Route::middleware('auth:api')->get('/user', function (Request $request) {
+//     return $request->user();
 // });
+
+Route::group(['prefix' => 'auth'], function () {
+
+    Route::post('login', 'AuthController@login')->name('auth-login');
+    Route::post('logout', 'AuthController@logout')->name('auth-logout');
+    Route::post('refresh', 'AuthController@refresh')->name('auth-refresh');
+    Route::post('me', 'AuthController@me')->name('auth-me');
+    Route::post('payload', 'AuthController@payload')->name('auth-payload');
+    Route::post('register', 'AuthController@register')->name('auth-register');
+
+});

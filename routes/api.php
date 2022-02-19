@@ -27,6 +27,15 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('payload', 'AuthController@payload')->name('auth.payload');
     Route::post('register', 'AuthController@register')->name('auth.register');
 
+    // Permission Routes
+    Route::prefix('permissions')->group(function() {
+        Route::post('/view', 'PermissionController@view')->name('permissions.view');
+        Route::post('/store', 'PermissionController@store')->name('permissions.store');
+        Route::post('/show/{id}', 'PermissionController@show')->name('permissions.show');
+        Route::post('/update/{id}', 'PermissionController@update')->name('permissions.update');
+        Route::post('/delete/{id}', 'PermissionController@delete')->name('permissions.delete');
+    });
+    
     // Role Routes
     Route::prefix('roles')->group(function() {
         Route::post('/view', 'RoleController@view')->name('roles.view');

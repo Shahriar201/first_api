@@ -20,11 +20,19 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
 
-    Route::post('login', 'AuthController@login')->name('auth-login');
-    Route::post('logout', 'AuthController@logout')->name('auth-logout');
-    Route::post('refresh', 'AuthController@refresh')->name('auth-refresh');
-    Route::post('me', 'AuthController@me')->name('auth-me');
-    Route::post('payload', 'AuthController@payload')->name('auth-payload');
-    Route::post('register', 'AuthController@register')->name('auth-register');
+    Route::post('login', 'AuthController@login')->name('auth.login');
+    Route::post('logout', 'AuthController@logout')->name('auth.logout');
+    Route::post('refresh', 'AuthController@refresh')->name('auth.refresh');
+    Route::post('me', 'AuthController@me')->name('auth.me');
+    Route::post('payload', 'AuthController@payload')->name('auth.payload');
+    Route::post('register', 'AuthController@register')->name('auth.register');
 
+    // Role Routes
+    Route::prefix('roles')->group(function() {
+        Route::post('/view', 'RoleController@view')->name('roles.view');
+        Route::post('/store', 'RoleController@store')->name('roles.store');
+        Route::post('/show/{id}', 'RoleController@show')->name('roles.show');
+        Route::post('/update/{id}', 'RoleController@update')->name('roles.update');
+        Route::post('/delete/{id}', 'RoleController@delete')->name('roles.delete');
+    });
 });

@@ -10,20 +10,65 @@ use App\User;
 
 class AuthController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
-    }
+
+    // public function login(Request $request)
+    // {
+    //     $credentials = $request->only('email', 'password');
+
+    //     if ($token = $this->guard()->attempt($credentials)) {
+    //         return $this->respondWithToken($token);
+    //     }
+
+    //     return response()->json(['error' => 'Email Or Password does not match'], 401);
+    // }
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-
-        if ($token = $this->guard()->attempt($credentials)) {
-            return $this->respondWithToken($token);
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email|max:255',
+            'password' => 'required|string|min:8',
+        ]);
+        if ($validator->fails()) {
+            return $this->set_response(null, 422, 'failed', $validator->errors()->all());
         }
 
-        return response()->json(['error' => 'Email Or Password does not match'], 401);
+        if (!(User::where('email', $request->email)->pluck('status')->first()==1)) {
+            return $this->set_response(null, 422, 'failed', ['User is inactive!']);
+        }
+
+        if (!Auth::attempt($request->except(['remember_me']))) {
+            return $this->set_response(null, 422, 'failed', ['Credentials mismatch']);
+        }
+
+        $personalAccessToken = $this->getPersonalAccessToken();
+
+
+        $user = Auth::user();
+        $user_roles_permissions = $this->user_roles_permissions_q();
+        $roles = $user_roles_permissions->where('user_id', $user->id)->pluck('role_name')->unique()->toArray();
+        $permissions = $user_roles_permissions->where('user_id', $user->id)->pluck('permission_name')->unique()->toArray();
+
+        $tokenData = [
+            'user' => [
+                'access_token' => $personalAccessToken->accessToken,
+                'token_type' => 'Bearer',
+                'expires_at' => Carbon::parse($personalAccessToken->token->expires_at)->toDateTimeString(),
+                'name' => $user->name,
+                'email' => $user->email,
+                'userId' => $user->id,
+            ],
+            'roles' => $roles,
+            'permissions' => $permissions,
+        ];
+
+        // Laravel passport prevent user to login together with the same credential
+        // OauthAccessToken::where('user_id', $user->id)->orderBy('created_at', 'desc')->skip(1)->limit(100)->get()->map(function ($q) {
+        //     return $q->update([
+        //         'revoked' => 1
+        //     ]);
+        // });
+
+        return $this->set_response($tokenData, 200, 'success', ['Logged in!']);
     }
 
     public function me()
